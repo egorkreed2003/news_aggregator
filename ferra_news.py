@@ -1,3 +1,38 @@
+from pprint import pprint
+
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from datetime import datetime
+
+now = datetime.now()
+year = now.year
+month = now.month
+day = now.day
+
+_browser = webdriver.Chrome()
+_browser.implicitly_wait(5)
+
+
+def get_news_list_ferra():
+    _url_snils = f"https://www.ferra.ru/news/{year}/{month}/{day}"
+    _browser.get(_url_snils)
+
+    divs = _browser.find_elements(By.CLASS_NAME, 'gbWBYuE8')
+
+    articles = {}
+    for d in divs:
+        try:
+            a = d.find_element(By.TAG_NAME, 'a')
+            _links = a.get_attribute('href')
+            _title = a.find_element(By.CLASS_NAME, "headline").text.strip()
+            _date = a.find_element(By.CLASS_NAME, "meta").text.strip()
+            _category = a.find_element(By.CLASS_NAME, "XPmolXAO").text.strip()
+            if not _title:
+                break
+            articles.update({_title: {"date": _date, "link": _links, "category": _category}})
+        except:
+            pass
 
     print(articles)
     return articles
