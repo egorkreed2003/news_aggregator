@@ -1,0 +1,79 @@
+from pprint import pprint
+
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from datetime import datetime
+
+now = datetime.now()
+year = now.year
+month = now.month
+day = now.day
+
+_browser = webdriver.Chrome()
+_browser.implicitly_wait(5)
+
+def date_today(date:str):
+    if len(date) == 5:
+        return True
+    return False
+
+
+def get_news_list_rbc():
+    # _url_snils = f"https://www.rbc.ru/technology_and_media/"
+    _url_snils = f"https://www.rbc.ru/politics/"
+    _browser.get(_url_snils)
+
+
+    divs = _browser.find_elements(By.CLASS_NAME, 'js-category-item')
+    articles = {}
+    _category = _browser.find_element(By.TAG_NAME, "h1").text.strip()
+    for d in divs:
+        try:
+            _links= d.find_element(By.CLASS_NAME, "item__link").get_attribute('href')
+            _title = d.find_element(By.CLASS_NAME, "normal-wrap").text.strip()
+            _date = d.find_element(By.CLASS_NAME, "item__category").text.strip()
+            if not date_today(_date):
+                break
+            if not _title:
+                break
+            articles.update({_title: {"date": _date, "link": _links, "category": _category}})
+        except:
+            pass
+
+    pprint(articles)
+    return articles
+
+textart={}
+def get_text_from_news(articles):
+    for i in articles:
+        n=articles.get(i).get("link")
+        _browser.get(n)
+        _title = _browser.find_element(By.TAG_NAME, "h1").text.strip()
+        try:
+            _subbody =_browser.find_element(By.CLASS_NAME, "article__text__overview").text.strip()
+        except:
+            _subbody= None
+        _bodyt=_browser.find_element(By.CLASS_NAME, "article__text")
+        _bodyp= _bodyt.find_elements(By.TAG_NAME,"p")
+
+        g=""
+        for f in _bodyp:
+            g+=f.text.strip()
+
+        print(g)
+        k=[]
+        _image = _bodyt.find_elements(By.CLASS_NAME, "smart-image__img")
+        for h in _image:
+            _img = h.get_attribute('src')
+            k.append(_img)
+
+        textart.update({_title: {"Subbody":_subbody,"Body":g,"Images":k}})
+
+
+    # p
+    return textart
+
+if __name__ == '__main__':
+    articles_list = get_news_list_rbc()
+    get_text_from_news(articles_list)
