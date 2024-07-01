@@ -1,0 +1,72 @@
+import time
+from pprint import pprint
+
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from datetime import datetime
+
+now = datetime.now()
+year = now.year
+month = now.month
+day = now.day
+
+_browser = webdriver.Chrome()
+_browser.implicitly_wait(5)
+
+
+# def scroll():
+#     btn_next = self._browser.find_element(By.CSS_SELECTOR, "#captchaForm > div > button")
+#
+#     btn_next.click()
+def get_news_list_gazeta():
+    _url_snils = f"https://www.gazeta.ru/news/"
+    _browser.get(_url_snils)
+    time.sleep(2)
+    o = _browser.find_element(By.ID, '_id_article_listing')
+    divs = o.find_elements(By.TAG_NAME, 'a')
+
+    articles = {}
+    for d in divs:
+        try:
+            print(d.get_attribute("innerHTML"))
+            _links = d.get_attribute('href')
+            _title = d.find_element(By.CSS_SELECTOR, "div.b_ear-textblock").text.strip()
+            _date = d.get_attribute("data-pubtime")  # преобр из юникстайм
+            _category = _browser.find_element(By.CLASS_NAME, "b_main-title").text.strip()
+            if not _title:
+                break
+            articles.update({_title: {"link": _links, "category": _category, "date": _date}})
+        except Exception as e:
+            print(e)
+            pass
+
+    print(articles)
+    return articles
+
+
+textart = {}
+
+
+def get_text_from_news(articles):
+    for i in articles:
+        n = articles.get(i).get("link")
+        _browser.get(n)
+        _title = _browser.find_element(By.CLASS_NAME, "headline").text.strip()
+        _source = _browser.find_element(By.CSS_SELECTOR,
+                                        "#_id_article > div.b_article-header > div.addinfo > div > span > span > a")
+        _s = _source.get_attribute('href')
+        # _image = _browser.find_element(By.CSS_SELECTOR, "#_igallery_19179775 > div.mainarea > div.mainarea-wrapper > figure > img.item-image")
+        # _img = _image.get_attribute('src')
+        _subbody = _browser.find_element(By.CLASS_NAME, "subheader").text.strip()
+        _body = _browser.find_element(By.CLASS_NAME, "b_article-text").text.strip()
+
+        textart.update({_title: {"title": _title, "body": _body, "source": _s}}) 
+
+    print(textart)
+    return textart
+
+
+if __name__ == '__main__':
+    articles_list = get_news_list_gazeta()
+    get_text_from_news(articles_list)
