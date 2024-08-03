@@ -1,0 +1,60 @@
+from pprint import pprint
+
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from datetime import datetime
+
+now = datetime.now()
+year = now.year
+month = now.month
+day = now.day
+
+_browser = webdriver.Chrome()
+_browser.implicitly_wait(5)
+
+
+def get_news_cnews():
+    _url_snils = f"https://www.cnews.ru/news"
+    _browser.get(_url_snils)
+
+    divs = _browser.find_elements(By.CLASS_NAME, 'allnews_item')
+
+    articles = {}
+    for d in divs:
+        _links = d.find_element(By.TAG_NAME, "a").get_attribute('href')
+        _title = d.find_element(By.CLASS_NAME, "ani-postname").text.strip()
+        _category = "главное"
+        _date = d.find_element(By.CLASS_NAME, "ani-date").text.strip()
+
+        if not _title:
+            break
+        articles.update({_title: {"title": _title, "date": _date, "link": _links, "category": _category}})
+    # except:
+    #     pass
+
+    print(articles)
+    return articles
+
+
+textart = {}
+
+
+
+def get_text_from_news(url):
+    _browser.get(url)
+    _title = _browser.find_element(By.TAG_NAME, "h1").text.strip()
+    b = _browser.find_element(By.CLASS_NAME, 'news_container').find_elements(By.TAG_NAME, "p")
+    _body = ""
+    for k in b:
+        _body += (k.text.strip())
+
+    textart.update({_title: {"text": _body}})
+
+    print(textart)
+    return textart
+
+
+if __name__ == '__main__':
+    articles_list = get_news_cnews()
+    get_text_from_news(url="https://www.cnews.ru/news/line/2024-07-26_student_ngu_razrabotal_programmu")
