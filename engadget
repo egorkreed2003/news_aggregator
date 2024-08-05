@@ -1,0 +1,73 @@
+from pprint import pprint
+
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from datetime import datetime
+
+now = datetime.now()
+year = now.year
+month = now.month
+day = now.day
+
+_browser = webdriver.Chrome()
+_browser.implicitly_wait(5)
+
+
+def get_news_engadget():
+    _url_snils = f"https://www.engadget.com/"
+    _browser.get(_url_snils)
+
+    divs = _browser.find_elements(By.TAG_NAME, "article")
+    _category = "The latest"
+    articles = {}
+    for d in divs:
+        _title = d.find_element(By.TAG_NAME, "h2").text.strip()
+        _links = d.find_element(By.TAG_NAME, "a").get_attribute('href')
+        _dateandby = d.find_elements(By.TAG_NAME, "span")
+        for i in _dateandby:
+            _date = ""
+            _date1 = i.text.strip()
+            if (len(_date1)) > 2:
+                _date = _date1[2:]
+            else:
+                pass
+
+            if not _title:
+                break
+            articles.update({_title: {"date": _date, "link": _links, "category": _category}})
+
+    print(articles)
+    return articles
+
+
+textart = {}
+
+
+def get_text_from_news(articles):
+    for i in articles:
+        n = articles.get(i).get("link")
+        _browser.get(n)
+        _title = _browser.find_element(By.TAG_NAME, "h1").text.strip()
+        _subbody = _browser.find_element(By.TAG_NAME, "h2").text.strip()
+        _s = _browser.find_element(By.CLASS_NAME, "caas-attr-item-author")
+        _source = _s.find_element(By.TAG_NAME, "a").text.strip()
+        _b = _browser.find_element(By.CLASS_NAME, "caas-body")
+        _bodyparagraphs = _b.find_elements(By.TAG_NAME, "p")
+        _body = ""
+        for k in _bodyparagraphs:
+            _body += (k.text.strip())
+        _image = _browser.find_element(By.CLASS_NAME, "caas-img-container")
+        _image1 = _image.find_element(By.CLASS_NAME, "caas-img")
+        _img = _image1.get_attribute('src')
+
+
+        textart.update({_title: {"fact": _subbody, "text": _body, "source": _source, "image": _img}})
+
+    print(textart)
+    return textart
+
+
+if __name__ == '__main__':
+    articles_list = get_news_engadget()
+    get_text_from_news(articles_list)
